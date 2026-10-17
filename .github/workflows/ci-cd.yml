@@ -87,7 +87,7 @@ jobs:
 
       - name: Configure Composer GitHub authentication
         run: |
-          composer config --global github-oauth.github.com "${{ secrets.COMPOSER_GH_TOKEN }}"
+          composer config --global github-oauth.github.com "${{ github.token }}"
 
       - name: Install dependencies
         run: |
