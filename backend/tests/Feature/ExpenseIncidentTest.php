@@ -62,8 +62,7 @@ class ExpenseIncidentTest extends TestCase
     public function test_admin_can_create_expense(): void
     {
         $response = $this->actingAsAdmin()
-            ->postJson('/api/v1/expenses', [
-                'mission_id' => $this->mission->uuid,
+            ->postJson("/api/v1/missions/{$this->mission->uuid}/expenses", [
                 'type'       => 'fuel',
                 'amount'     => 5000.00,
                 'liters'     => 45.5,
@@ -77,7 +76,7 @@ class ExpenseIncidentTest extends TestCase
     public function test_create_expense_validation(): void
     {
         $response = $this->actingAsAdmin()
-            ->postJson('/api/v1/expenses', []);
+            ->postJson("/api/v1/missions/{$this->mission->uuid}/expenses", []);
 
         $response->assertStatus(422);
     }

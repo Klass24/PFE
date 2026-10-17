@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Modules\Checklist\Models\Checklist;
 use App\Modules\Vehicle\Models\Vehicle;
 use App\Modules\Driver\Models\Driver;
 use App\Modules\Mission\Models\Mission;
@@ -43,8 +44,8 @@ class MissionTest extends TestCase
     private function missionData(array $overrides = []): array
     {
         return array_merge([
-            'vehicle_id'  => $this->vehicle->uuid,
-            'driver_id'   => $this->driver->uuid,
+            'vehicle_id'  => $this->vehicle->id,
+            'driver_id'   => $this->driver->id,
             'origin'      => 'Brazzaville',
             'destination' => 'Pointe-Noire',
             'start_date'  => now()->addDay()->toDateTimeString(),
@@ -98,6 +99,15 @@ class MissionTest extends TestCase
             'origin'      => 'Brazzaville',
             'destination' => 'Pointe-Noire',
             'status'      => 'planned',
+        ]);
+
+        Checklist::create([
+            'uuid'       => Str::uuid(),
+            'mission_id' => $mission->id,
+            'driver_id'  => $this->driver->id,
+            'vehicle_id' => $this->vehicle->id,
+            'company_id' => $this->company->id,
+            'status'     => 'validated',
         ]);
 
         $response = $this->actingAsAdmin()
