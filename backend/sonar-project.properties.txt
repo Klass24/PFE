@@ -1,0 +1,7 @@
+sonar.projectKey=TON_PROJECT_KEY
+sonar.organization=TON_ORGANIZATION
+
+sonar.sources=src
+sonar.tests=tests
+
+sonar.php.coverage.reportPaths=coverage.xml
