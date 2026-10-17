@@ -56,7 +56,7 @@ jobs:
         run: test -s coverage.xml
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v4
+        uses: SonarSource/sonarqube-scan-action@v8.3.0
         with:
           args: >-
             -Dsonar.projectBaseDir=backend
