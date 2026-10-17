@@ -10,7 +10,7 @@ use App\Modules\Incident\Models\Incident;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
-class ExpenseTest extends TestCase
+class ExpenseIncidentTest extends TestCase
 {
     private Mission $mission;
 

@@ -7,6 +7,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return match (true) {
                     $e instanceof ModelNotFoundException    => response()->json(['success' => false, 'data' => null, 'message' => 'Ressource introuvable.'], 404),
                     $e instanceof AuthorizationException    => response()->json(['success' => false, 'data' => null, 'message' => 'Action non autorisée.'], 403),
+                    $e instanceof HttpExceptionInterface && $e->getStatusCode() === 403 => response()->json(['success' => false, 'data' => null, 'message' => 'Action non autorisée.'], 403),
                     $e instanceof AuthenticationException   => response()->json(['success' => false, 'data' => null, 'message' => 'Non authentifié.'], 401),
                     $e instanceof ValidationException       => response()->json(['success' => false, 'data' => $e->errors(), 'message' => 'Données invalides.'], 422),
                     default                                 => response()->json(['success' => false, 'data' => null, 'message' => 'Erreur interne du serveur.'], 500),
