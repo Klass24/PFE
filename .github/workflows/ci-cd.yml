@@ -1,0 +1,1262 @@
+name: CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_prod:
+        description: "Déployer en production"
+        required: true
+        default: false
+        type: boolean
+
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "docker/**"
+      - "charts/pfe/**"
+      - "k8s/**"
+      - ".github/workflows/ci-cd.yml"
+
+concurrency:
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+
+  # ============================================================
+  # BACKEND TEST
+  # ============================================================
+
+  backend-lint-test:
+    name: Backend PHP - lint & tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 1
+          submodules: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite
+          tools: composer
+          coverage: none
+
+      - name: Check PHP
+        run: |
+          php --version
+          composer --version
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-
+
+      - name: Configure Composer
+        run: |
+          composer config --global process-timeout 3000
+          composer config --global preferred-install dist
+
+      - name: Configure Composer GitHub authentication
+        run: |
+          composer config --global github-oauth.github.com "${{ secrets.COMPOSER_GH_TOKEN }}"
+
+      - name: Install dependencies
+        run: |
+          composer install \
+            --no-interaction \
+            --prefer-dist \
+            --no-progress \
+            --optimize-autoloader
+
+      - name: Prepare environment
+        run: |
+          if [ ! -f .env ]; then
+            cp .env.example .env
+          fi
+
+      - name: Configure SQLite
+        run: |
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i 's/^CACHE_STORE=.*/CACHE_STORE=array/' .env
+          sed -i 's/^CACHE_DRIVER=.*/CACHE_DRIVER=array/' .env
+          sed -i 's/^SESSION_DRIVER=.*/SESSION_DRIVER=array/' .env
+          sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env
+
+          mkdir -p database
+          touch database/database.sqlite
+
+          sed -i '/^DB_DATABASE=/d' .env
+          echo "DB_DATABASE=$(pwd)/database/database.sqlite" >> .env
+
+      - name: Generate application key
+        run: |
+          php artisan key:generate --ansi
+
+      - name: Clear configuration
+        run: |
+          php artisan config:clear
+
+     
+
+
+  # ============================================================
+  # FRONTEND TEST
+  # ============================================================
+
+  frontend-lint-test:
+    name: Frontend Node - lint & build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 1
+          submodules: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+
+      - name: Build
+        run: |
+          npm run build
+
+
+  # ============================================================
+  # HELM LINT
+  # ============================================================
+
+  helm-lint:
+    name: Helm chart - lint
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 1
+          submodules: false
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.4
+
+      - name: Helm version
+        run: |
+          helm version
+
+      - name: Lint DEV
+        run: |
+          helm lint charts/pfe \
+            -f charts/pfe/values-dev.yaml
+
+      - name: Lint STAGING
+        run: |
+          helm lint charts/pfe \
+            -f charts/pfe/values-staging.yaml
+
+      - name: Lint PROD
+        run: |
+          helm lint charts/pfe \
+            -f charts/pfe/values-prod.yaml
+
+
+  # ============================================================
+  # TAG
+  # ============================================================
+
+  set-tag:
+    name: Prepare image tag
+
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+
+    steps:
+
+      - name: Generate tag
+        id: tag
+        shell: bash
+        run: |
+
+          if [ "${GITHUB_REF_NAME}" = "develop" ]; then
+            suffix="dev"
+
+          elif [ "${GITHUB_REF_NAME}" = "staging" ]; then
+            suffix="staging"
+
+          elif [ "${GITHUB_REF_NAME}" = "main" ]; then
+            suffix="prod"
+
+          else
+            echo "Unsupported branch: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+          short_sha="${GITHUB_SHA:0:12}"
+          tag="sha-${short_sha}-${suffix}"
+
+          echo "Generated tag: ${tag}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+
+
+  # ============================================================
+  # BUILD BACKEND
+  # ============================================================
+
+  build-backend:
+    name: Build & push backend
+
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
+
+    needs:
+      - backend-lint-test
+      - frontend-lint-test
+      - helm-lint
+      - set-tag
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      image: ${{ steps.vars.outputs.image }}
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 1
+          submodules: false
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image reference
+        id: vars
+        shell: bash
+        run: |
+          image="ghcr.io/${{ github.repository_owner }}/pfe-backend"
+
+          echo "image=${image}:${{ needs.set-tag.outputs.tag }}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/php/Dockerfile
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          sbom: false
+          tags: |
+            ${{ steps.vars.outputs.image }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+
+  # ============================================================
+  # BUILD FRONTEND
+  # ============================================================
+
+  build-frontend:
+    name: Build & push frontend
+
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
+
+    needs:
+      - backend-lint-test
+      - frontend-lint-test
+      - set-tag
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      image: ${{ steps.vars.outputs.image }}
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 1
+          submodules: false
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image reference
+        id: vars
+        shell: bash
+        run: |
+          image="ghcr.io/${{ github.repository_owner }}/pfe-frontend"
+
+          echo "image=${image}:${{ needs.set-tag.outputs.tag }}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/frontend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          sbom: false
+          tags: |
+            ${{ steps.vars.outputs.image }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+
+  # ============================================================
+  # DEPLOY DEV
+  # ============================================================
+
+  deploy-dev:
+    name: Deploy to DEV
+
+    if: |
+      github.event_name == 'push' &&
+      github.ref_name == 'develop'
+
+    needs:
+      - set-tag
+      - build-backend
+      - build-frontend
+
+    runs-on: self-hosted
+
+    environment:
+      name: dev
+      url: http://localhost:8080
+
+    steps:
+
+      # --------------------------------------------------------
+      # CHECKOUT
+      # --------------------------------------------------------
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 1
+          submodules: false
+
+      # --------------------------------------------------------
+      # VERIFY RUNNER
+      # --------------------------------------------------------
+
+      - name: Check runner
+        shell: powershell
+        run: |
+          Write-Host "===== RUNNER ====="
+          whoami
+
+          Write-Host "PowerShell:"
+          $PSVersionTable.PSVersion
+
+          Write-Host "Docker:"
+          docker version
+
+          Write-Host "Kind:"
+          kind version
+
+          Write-Host "Helm:"
+          helm version --short
+
+      # --------------------------------------------------------
+      # CONFIGURE KIND KUBECONFIG
+      # --------------------------------------------------------
+
+      - name: Configure Kind kubeconfig
+        shell: powershell
+        run: |
+
+          Write-Host "=========================================="
+          Write-Host "CONFIGURING KUBERNETES"
+          Write-Host "=========================================="
+
+          $kubeDir = "$env:USERPROFILE\.kube"
+          $kubeConfig = "$kubeDir\config-kind-fleetcontrol"
+
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path $kubeDir | Out-Null
+
+          Write-Host "Checking Kind cluster..."
+
+          kind get clusters
+
+          $clusters = kind get clusters
+
+          if ($clusters -notcontains "fleetcontrol") {
+            throw "Kind cluster 'fleetcontrol' does not exist."
+          }
+
+          Write-Host "Generating kubeconfig..."
+
+          kind get kubeconfig `
+            --name fleetcontrol |
+            Set-Content `
+              -Path $kubeConfig `
+              -Encoding UTF8
+
+          if (-not (Test-Path $kubeConfig)) {
+            throw "Kubeconfig was not created."
+          }
+
+          Write-Host "Kubeconfig: $kubeConfig"
+
+          "KUBECONFIG=$kubeConfig" >> $env:GITHUB_ENV
+
+          Write-Host ""
+          Write-Host "Contexts:"
+          kubectl --kubeconfig="$kubeConfig" config get-contexts
+
+          Write-Host ""
+          Write-Host "Using context kind-fleetcontrol..."
+
+          kubectl --kubeconfig="$kubeConfig" `
+            config use-context kind-fleetcontrol
+
+          Write-Host ""
+          Write-Host "Current context:"
+          kubectl --kubeconfig="$kubeConfig" `
+            config current-context
+
+          Write-Host ""
+          Write-Host "Cluster info:"
+          kubectl --kubeconfig="$kubeConfig" `
+            cluster-info
+
+          Write-Host ""
+          Write-Host "Nodes:"
+          kubectl --kubeconfig="$kubeConfig" `
+            get nodes -o wide
+
+      # --------------------------------------------------------
+      # VERIFY KUBECONFIG USED BY ALL FOLLOWING STEPS
+      # --------------------------------------------------------
+
+      - name: Verify Kubernetes environment
+        shell: powershell
+        run: |
+
+          Write-Host "KUBECONFIG=$env:KUBECONFIG"
+
+          if ([string]::IsNullOrWhiteSpace($env:KUBECONFIG)) {
+            throw "KUBECONFIG is not defined."
+          }
+
+          Write-Host ""
+          Write-Host "Current context:"
+          kubectl config current-context
+
+          Write-Host ""
+          Write-Host "Cluster:"
+          kubectl cluster-info
+
+          Write-Host ""
+          Write-Host "Nodes:"
+          kubectl get nodes
+
+      # --------------------------------------------------------
+      # HELM
+      # --------------------------------------------------------
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.4
+
+      # --------------------------------------------------------
+      # NAMESPACE
+      # --------------------------------------------------------
+
+      - name: Ensure namespace exists
+        shell: powershell
+        run: |
+
+          kubectl create namespace dev `
+            --dry-run=client `
+            -o yaml |
+            kubectl apply -f -
+
+      # --------------------------------------------------------
+      # LOGIN GHCR
+      # --------------------------------------------------------
+
+      - name: Login GHCR on self-hosted runner
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_READ_TOKEN }}
+
+      # --------------------------------------------------------
+      # KUBERNETES GHCR SECRET
+      # --------------------------------------------------------
+
+      - name: Create GHCR pull secret
+        shell: powershell
+        run: |
+
+          kubectl create secret docker-registry ghcr-registry-secret `
+            --namespace dev `
+            --docker-server=ghcr.io `
+            --docker-username="${{ secrets.GHCR_USERNAME }}" `
+            --docker-password="${{ secrets.GHCR_READ_TOKEN }}" `
+            --dry-run=client `
+            -o yaml |
+            kubectl apply -f -
+
+      # --------------------------------------------------------
+      # MYSQL SECRET
+      # --------------------------------------------------------
+
+      - name: Create MySQL secret
+        shell: powershell
+        run: |
+
+          kubectl create secret generic pfe-dev-pfe-mysql-secret `
+            --namespace dev `
+            --from-literal=mysql-root-password="${{ secrets.MYSQL_ROOT_PASSWORD }}" `
+            --from-literal=mysql-user="${{ secrets.MYSQL_USER }}" `
+            --from-literal=mysql-password="${{ secrets.MYSQL_PASSWORD }}" `
+            --dry-run=client `
+            -o yaml |
+            kubectl apply -f -
+
+      # --------------------------------------------------------
+      # IMAGE TAG
+      # --------------------------------------------------------
+
+      - name: Display deployment tag
+        shell: powershell
+        run: |
+
+          $tag = "${{ needs.set-tag.outputs.tag }}"
+
+          Write-Host "=========================================="
+          Write-Host "DEPLOYMENT TAG"
+          Write-Host "=========================================="
+
+          Write-Host "Tag:"
+          Write-Host $tag
+
+          Write-Host ""
+          Write-Host "Backend:"
+          Write-Host "ghcr.io/${{ github.repository_owner }}/pfe-backend:$tag"
+
+          Write-Host ""
+          Write-Host "Frontend:"
+          Write-Host "ghcr.io/${{ github.repository_owner }}/pfe-frontend:$tag"
+
+      # --------------------------------------------------------
+      # PULL BACKEND
+      # --------------------------------------------------------
+
+      - name: Pull backend image
+        shell: powershell
+        run: |
+
+          $tag = "${{ needs.set-tag.outputs.tag }}"
+          $image = "ghcr.io/${{ github.repository_owner }}/pfe-backend:$tag"
+
+          Write-Host "Pulling backend:"
+          Write-Host $image
+
+          docker pull --platform linux/amd64 $image
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to pull backend image."
+          }
+
+          docker image inspect $image | Out-Null
+
+      # --------------------------------------------------------
+      # PULL FRONTEND
+      # --------------------------------------------------------
+
+      - name: Pull frontend image
+        shell: powershell
+        run: |
+
+          $tag = "${{ needs.set-tag.outputs.tag }}"
+          $image = "ghcr.io/${{ github.repository_owner }}/pfe-frontend:$tag"
+
+          Write-Host "Pulling frontend:"
+          Write-Host $image
+
+          docker pull --platform linux/amd64 $image
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to pull frontend image."
+          }
+
+          docker image inspect $image | Out-Null
+
+      # --------------------------------------------------------
+      # LOAD BACKEND INTO KIND
+      # --------------------------------------------------------
+
+      - name: Load backend into Kind
+        shell: powershell
+        run: |
+
+          $tag = "${{ needs.set-tag.outputs.tag }}"
+          $image = "ghcr.io/${{ github.repository_owner }}/pfe-backend:$tag"
+
+          Write-Host "Loading backend into Kind:"
+          Write-Host $image
+
+          kind load docker-image $image `
+            --name fleetcontrol
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to load backend image into Kind."
+          }
+
+      # --------------------------------------------------------
+      # LOAD FRONTEND INTO KIND
+      # --------------------------------------------------------
+
+      - name: Load frontend into Kind
+        shell: powershell
+        run: |
+
+          $tag = "${{ needs.set-tag.outputs.tag }}"
+          $image = "ghcr.io/${{ github.repository_owner }}/pfe-frontend:$tag"
+
+          Write-Host "Loading frontend into Kind:"
+          Write-Host $image
+
+          kind load docker-image $image `
+            --name fleetcontrol
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to load frontend image into Kind."
+          }
+
+      # --------------------------------------------------------
+      # VERIFY IMAGES
+      # --------------------------------------------------------
+
+      - name: Verify images in Kind
+        shell: powershell
+        run: |
+
+          Write-Host "===== IMAGES IN KIND ====="
+
+          docker exec fleetcontrol-control-plane `
+            crictl images |
+            findstr pfe
+
+      # --------------------------------------------------------
+      # HELM DEPLOY
+      # --------------------------------------------------------
+
+      - name: Deploy application with Helm
+        shell: powershell
+        run: |
+
+          Write-Host "KUBECONFIG=$env:KUBECONFIG"
+
+          Write-Host "Current context:"
+          kubectl config current-context
+
+          Write-Host "Cluster:"
+          kubectl cluster-info
+
+          Write-Host "Deploying tag:"
+          Write-Host "${{ needs.set-tag.outputs.tag }}"
+
+          helm upgrade --install pfe-dev charts/pfe `
+            --namespace dev `
+            --create-namespace `
+            -f charts/pfe/values-dev.yaml `
+            --set image.repositoryBackend=ghcr.io/${{ github.repository_owner }}/pfe-backend `
+            --set image.repositoryFrontend=ghcr.io/${{ github.repository_owner }}/pfe-frontend `
+            --set image.tag=${{ needs.set-tag.outputs.tag }} `
+            --set image.pullPolicy=IfNotPresent `
+            --set image.usePullSecret=false `
+            --set config.DB_HOST=pfe-dev-pfe-mysql `
+            --set prometheus.enabled=false `
+            --set grafana.enabled=false `
+            --wait `
+            --atomic `
+            --timeout 10m
+
+      # --------------------------------------------------------
+      # ROLLOUT BACKEND
+      # --------------------------------------------------------
+
+      - name: Verify backend rollout
+        shell: powershell
+        run: |
+
+          kubectl rollout status `
+            deployment/pfe-dev-pfe-backend `
+            -n dev `
+            --timeout=300s
+
+      # --------------------------------------------------------
+      # ROLLOUT FRONTEND
+      # --------------------------------------------------------
+
+      - name: Verify frontend rollout
+        shell: powershell
+        run: |
+
+          kubectl rollout status `
+            deployment/pfe-dev-pfe-frontend `
+            -n dev `
+            --timeout=300s
+
+      # --------------------------------------------------------
+      # FINAL STATUS
+      # --------------------------------------------------------
+
+      - name: Kubernetes status
+        if: always()
+        shell: powershell
+        run: |
+
+          Write-Host "===== CONTEXT ====="
+          kubectl config current-context
+
+          Write-Host ""
+          Write-Host "===== CLUSTER ====="
+          kubectl cluster-info
+
+          Write-Host ""
+          Write-Host "===== PODS ====="
+          kubectl get pods -n dev -o wide
+
+          Write-Host ""
+          Write-Host "===== SERVICES ====="
+          kubectl get services -n dev
+
+          Write-Host ""
+          Write-Host "===== DEPLOYMENTS ====="
+          kubectl get deployments -n dev
+
+          Write-Host ""
+          Write-Host "===== INGRESS ====="
+          kubectl get ingress -n dev
+
+      # --------------------------------------------------------
+      # VERIFY IMAGES
+      # --------------------------------------------------------
+
+      - name: Verify deployed images
+        shell: powershell
+        run: |
+
+          Write-Host "===== BACKEND IMAGE ====="
+
+          kubectl get deployment pfe-dev-pfe-backend `
+            -n dev `
+            -o jsonpath="{.spec.template.spec.containers[0].image}"
+
+          Write-Host ""
+
+          Write-Host "===== FRONTEND IMAGE ====="
+
+          kubectl get deployment pfe-dev-pfe-frontend `
+            -n dev `
+            -o jsonpath="{.spec.template.spec.containers[0].image}"
+
+          Write-Host ""
+
+      # --------------------------------------------------------
+      # DEBUG
+      # --------------------------------------------------------
+
+      - name: Diagnose failed deployment
+        if: failure()
+        shell: powershell
+        run: |
+
+          Write-Host "=========================================="
+          Write-Host "DEPLOYMENT DIAGNOSTIC"
+          Write-Host "=========================================="
+
+          Write-Host ""
+          Write-Host "===== KUBECONFIG ====="
+          Write-Host $env:KUBECONFIG
+
+          Write-Host ""
+          Write-Host "===== CONTEXT ====="
+          kubectl config current-context
+
+          Write-Host ""
+          Write-Host "===== CLUSTER ====="
+          kubectl cluster-info
+
+          Write-Host ""
+          Write-Host "===== NODES ====="
+          kubectl get nodes -o wide
+
+          Write-Host ""
+          Write-Host "===== PODS ====="
+          kubectl get pods -n dev -o wide
+
+          Write-Host ""
+          Write-Host "===== DEPLOYMENTS ====="
+          kubectl get deployments -n dev
+
+          Write-Host ""
+          Write-Host "===== EVENTS ====="
+
+          kubectl get events `
+            -n dev `
+            --sort-by='.lastTimestamp'
+
+          $pods = kubectl get pods `
+            -n dev `
+            -o jsonpath='{.items[*].metadata.name}' `
+            -split ' '
+
+          foreach ($pod in $pods) {
+
+            if ([string]::IsNullOrWhiteSpace($pod)) {
+              continue
+            }
+
+            Write-Host ""
+            Write-Host "=========================================="
+            Write-Host "DESCRIBE: $pod"
+            Write-Host "=========================================="
+
+            kubectl describe pod $pod -n dev
+
+            Write-Host ""
+            Write-Host "===== LOGS ====="
+
+            kubectl logs $pod `
+              -n dev `
+              --all-containers `
+              --tail=200 `
+              2>$null
+          }
+
+      # --------------------------------------------------------
+      # SMOKE TEST
+      # --------------------------------------------------------
+
+      - name: Smoke test
+        shell: powershell
+        run: |
+
+          kubectl delete pod smoke-test-dev `
+            -n dev `
+            --ignore-not-found
+
+          kubectl run smoke-test-dev `
+            --rm `
+            -i `
+            --restart=Never `
+            --namespace dev `
+            --image=busybox:1.36 `
+            -- `
+            nc -z -v -w 5 pfe-dev-pfe-backend 9000
+
+
+  # ============================================================
+  # DEPLOY STAGING
+  # ============================================================
+
+  deploy-staging:
+    name: Deploy to STAGING
+
+    if: |
+      github.event_name == 'push' &&
+      github.ref_name == 'staging'
+
+    needs:
+      - set-tag
+      - build-backend
+      - build-frontend
+
+    runs-on: self-hosted
+
+    environment:
+      name: staging
+      url: https://staging.pfe.example.com
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 1
+          submodules: false
+
+      - name: Configure Kind kubeconfig
+        shell: powershell
+        run: |
+
+          $kubeDir = "$env:USERPROFILE\.kube"
+          $kubeConfig = "$kubeDir\config-kind-fleetcontrol"
+
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path $kubeDir | Out-Null
+
+          kind get kubeconfig `
+            --name fleetcontrol |
+            Set-Content `
+              -Path $kubeConfig `
+              -Encoding UTF8
+
+          "KUBECONFIG=$kubeConfig" >> $env:GITHUB_ENV
+
+          kubectl --kubeconfig="$kubeConfig" `
+            config use-context kind-fleetcontrol
+
+          kubectl --kubeconfig="$kubeConfig" `
+            cluster-info
+
+          kubectl --kubeconfig="$kubeConfig" `
+            get nodes
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.4
+
+      - name: Ensure namespace exists
+        shell: powershell
+        run: |
+
+          kubectl create namespace staging `
+            --dry-run=client `
+            -o yaml |
+            kubectl apply -f -
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_READ_TOKEN }}
+
+      - name: Create GHCR pull secret
+        shell: powershell
+        run: |
+
+          kubectl create secret docker-registry ghcr-registry-secret `
+            --namespace staging `
+            --docker-server=ghcr.io `
+            --docker-username="${{ secrets.GHCR_USERNAME }}" `
+            --docker-password="${{ secrets.GHCR_READ_TOKEN }}" `
+            --dry-run=client `
+            -o yaml |
+            kubectl apply -f -
+
+      - name: Create MySQL secret
+        shell: powershell
+        run: |
+
+          kubectl create secret generic pfe-staging-pfe-mysql-secret `
+            --namespace staging `
+            --from-literal=mysql-root-password="${{ secrets.MYSQL_ROOT_PASSWORD }}" `
+            --from-literal=mysql-user="${{ secrets.MYSQL_USER }}" `
+            --from-literal=mysql-password="${{ secrets.MYSQL_PASSWORD }}" `
+            --dry-run=client `
+            -o yaml |
+            kubectl apply -f -
+
+      - name: Deploy application
+        shell: powershell
+        run: |
+
+          helm upgrade --install pfe-staging charts/pfe `
+            --namespace staging `
+            --create-namespace `
+            -f charts/pfe/values-staging.yaml `
+            --set image.repositoryBackend=ghcr.io/${{ github.repository_owner }}/pfe-backend `
+            --set image.repositoryFrontend=ghcr.io/${{ github.repository_owner }}/pfe-frontend `
+            --set image.tag=${{ needs.set-tag.outputs.tag }} `
+            --set image.pullPolicy=Always `
+            --set image.usePullSecret=true `
+            --set config.DB_HOST=pfe-staging-pfe-mysql `
+            --wait `
+            --atomic `
+            --timeout 10m
+
+      - name: Verify backend rollout
+        shell: powershell
+        run: |
+
+          kubectl rollout status `
+            deployment/pfe-staging-pfe-backend `
+            -n staging `
+            --timeout=300s
+
+      - name: Verify frontend rollout
+        shell: powershell
+        run: |
+
+          kubectl rollout status `
+            deployment/pfe-staging-pfe-frontend `
+            -n staging `
+            --timeout=300s
+
+      - name: Kubernetes status
+        if: always()
+        shell: powershell
+        run: |
+
+          kubectl get pods -n staging -o wide
+          kubectl get services -n staging
+          kubectl get deployments -n staging
+          kubectl get ingress -n staging
+
+
+  # ============================================================
+  # DEPLOY PROD - MANUAL
+  # ============================================================
+
+  deploy-prod:
+    name: Deploy to PROD
+
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      github.ref_name == 'main' &&
+      inputs.deploy_prod == true
+
+    needs:
+      - set-tag
+      - build-backend
+      - build-frontend
+
+    runs-on: self-hosted
+
+    environment:
+      name: production
+      url: https://pfe.example.com
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 1
+          submodules: false
+
+      - name: Configure Kind kubeconfig
+        shell: powershell
+        run: |
+
+          $kubeDir = "$env:USERPROFILE\.kube"
+          $kubeConfig = "$kubeDir\config-kind-fleetcontrol"
+
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path $kubeDir | Out-Null
+
+          kind get kubeconfig `
+            --name fleetcontrol |
+            Set-Content `
+              -Path $kubeConfig `
+              -Encoding UTF8
+
+          "KUBECONFIG=$kubeConfig" >> $env:GITHUB_ENV
+
+          kubectl --kubeconfig="$kubeConfig" `
+            config use-context kind-fleetcontrol
+
+          kubectl --kubeconfig="$kubeConfig" `
+            cluster-info
+
+          kubectl --kubeconfig="$kubeConfig" `
+            get nodes
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.4
+
+      - name: Ensure namespace exists
+        shell: powershell
+        run: |
+
+          kubectl create namespace prod `
+            --dry-run=client `
+            -o yaml |
+            kubectl apply -f -
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_READ_TOKEN }}
+
+      - name: Create GHCR pull secret
+        shell: powershell
+        run: |
+
+          kubectl create secret docker-registry ghcr-registry-secret `
+            --namespace prod `
+            --docker-server=ghcr.io `
+            --docker-username="${{ secrets.GHCR_USERNAME }}" `
+            --docker-password="${{ secrets.GHCR_READ_TOKEN }}" `
+            --dry-run=client `
+            -o yaml |
+            kubectl apply -f -
+
+      - name: Create MySQL secret
+        shell: powershell
+        run: |
+
+          kubectl create secret generic pfe-prod-pfe-mysql-secret `
+            --namespace prod `
+            --from-literal=mysql-root-password="${{ secrets.MYSQL_ROOT_PASSWORD }}" `
+            --from-literal=mysql-user="${{ secrets.MYSQL_USER }}" `
+            --from-literal=mysql-password="${{ secrets.MYSQL_PASSWORD }}" `
+            --dry-run=client `
+            -o yaml |
+            kubectl apply -f -
+
+      - name: Deploy application
+        shell: powershell
+        run: |
+
+          helm upgrade --install pfe-prod charts/pfe `
+            --namespace prod `
+            --create-namespace `
+            -f charts/pfe/values-prod.yaml `
+            --set image.repositoryBackend=ghcr.io/${{ github.repository_owner }}/pfe-backend `
+            --set image.repositoryFrontend=ghcr.io/${{ github.repository_owner }}/pfe-frontend `
+            --set image.tag=${{ needs.set-tag.outputs.tag }} `
+            --set image.pullPolicy=Always `
+            --set image.usePullSecret=true `
+            --set config.DB_HOST=pfe-prod-pfe-mysql `
+            --wait `
+            --atomic `
+            --timeout 10m
+
+      - name: Verify backend rollout
+        shell: powershell
+        run: |
+
+          kubectl rollout status `
+            deployment/pfe-prod-pfe-backend `
+            -n prod `
+            --timeout=300s
+
+      - name: Verify frontend rollout
+        shell: powershell
+        run: |
+
+          kubectl rollout status `
+            deployment/pfe-prod-pfe-frontend `
+            -n prod `
+            --timeout=300s
+
+      - name: Kubernetes status
+        if: always()
+        shell: powershell
+        run: |
+
+          kubectl get pods -n prod -o wide
+          kubectl get services -n prod
+          kubectl get deployments -n prod
+          kubectl get ingress -n prod
+
+      - name: Smoke test
+        shell: powershell
+        run: |
+
+          kubectl delete pod smoke-test-prod `
+            -n prod `
+            --ignore-not-found
+
+          kubectl run smoke-test-prod `
+            --rm `
+            -i `
+            --restart=Never `
+            --namespace prod `
+            --image=busybox:1.36 `
+            -- `
+            nc -z -v -w 5 pfe-prod-pfe-backend 9000

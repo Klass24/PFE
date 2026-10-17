@@ -1,0 +1,49 @@
+name: fleetcontrol_mobile
+description: FleetControl — Application mobile offline-first de gestion de flotte.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP
+  dio: ^5.4.0
+
+  # Local storage (non-web platforms only)
+  sqflite: ^2.3.2
+  sqflite_common_ffi: ^2.3.0
+  path: ^1.9.0
+  shared_preferences: ^2.2.3
+
+  # State management
+  flutter_bloc: ^8.1.5
+
+  # DI
+  get_it: ^7.7.0
+
+  # Network
+  connectivity_plus: ^6.0.3
+
+  # Utils
+  uuid: ^4.4.0
+  intl: any
+  image_picker: ^1.0.7
+  geolocator: ^11.0.0
+  url_launcher: ^6.2.5
+
+  # UI
+  flutter_localizations:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  mocktail: ^1.0.4
+  bloc_test: ^9.1.7
+
+flutter:
+  uses-material-design: true

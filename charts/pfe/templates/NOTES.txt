@@ -1,0 +1,12 @@
+Thank you for installing the pfe chart.
+
+1. Check running resources:
+   kubectl get all -l app={{ include "pfe.fullname" . }}-backend
+
+2. To connect to MySQL (if enabled):
+   kubectl run -i --tty mysql-client --image=mysql:8.0 --rm --restart=Never --namespace default -- bash -il
+
+3. Prometheus & Grafana
+   - Prometheus UI: http://<cluster-ip-or-ingress>/:9090 (service name: {{ include "pfe.fullname" . }}-prometheus)
+   - Grafana UI: http://<cluster-ip-or-ingress>/:3000 (service name: {{ include "pfe.fullname" . }}-grafana)
+     Default admin credentials: from `values.yaml` (admin/admin)

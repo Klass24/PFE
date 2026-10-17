@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pfe.fullname" . }}-frontend
+spec:
+  replicas: {{ .Values.replicaCount.frontend }}
+  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.deployment.strategy.maxSurge }}
+      maxUnavailable: {{ .Values.deployment.strategy.maxUnavailable }}
+  selector:
+    matchLabels:
+      app: {{ include "pfe.fullname" . }}-frontend
+  template:
+    metadata:
+      labels:
+        app: {{ include "pfe.fullname" . }}-frontend
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name | default (include "pfe.fullname" .) }}
+      {{- if .Values.image.usePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecretName }}
+      {{- end }}
+      containers:
+        - name: frontend
+          image: "{{ .Values.image.repositoryFrontend }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.frontend.port }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.frontend.requests.cpu }}
+              memory: {{ .Values.resources.frontend.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.frontend.limits.cpu }}
+              memory: {{ .Values.resources.frontend.limits.memory }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.frontend.path }}
+              port: {{ .Values.service.frontend.port }}
+            initialDelaySeconds: {{ .Values.probes.frontend.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.frontend.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.frontend.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.frontend.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.frontend.path }}
+              port: {{ .Values.service.frontend.port }}
+            initialDelaySeconds: 3
+            periodSeconds: {{ .Values.probes.frontend.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.frontend.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.frontend.failureThreshold }}
+

@@ -1,0 +1,16 @@
+{{- if .Values.grafana.enabled }}
+# ConfigMap contenant les images pour remplacer le logo Grafana
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pfe.fullname" . }}-grafana-logo
+binaryData:
+{{- if .Files.Get "files/grafana_logo.png" }}
+  grafana_logo.png: |-
+    {{ .Files.Get "files/grafana_logo.png" | b64enc }}
+{{- end }}
+{{- if .Files.Get "files/grafana_icon.png" }}
+  grafana_icon.png: |-
+    {{ .Files.Get "files/grafana_icon.png" | b64enc }}
+{{- end }}
+{{- end }}

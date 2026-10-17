@@ -1,0 +1,120 @@
+# Default values for pfe chart (base / dev-like defaults, overridden by values-{env}.yaml)
+
+# Namespace ciblé (aussi passé via --namespace au helm upgrade)
+namespace: default
+
+serviceAccount:
+  create: true
+  name: ""
+
+replicaCount:
+  backend: 2
+  frontend: 2
+
+image:
+  repositoryBackend: pfe-backend
+  repositoryFrontend: pfe-frontend
+  tag: latest
+  pullPolicy: IfNotPresent
+  # Nom du Secret dockerconfigjson pour tirer les images depuis un registry privé (ghcr.io)
+  pullSecretName: ghcr-registry-secret
+  usePullSecret: false
+
+service:
+  backend:
+    port: 9000
+  frontend:
+    port: 80
+
+mysql:
+  enabled: true
+  rootPassword: rootpassword
+  user: pfe_user
+  password: pfe_pass
+  database: pfe_db
+  persistence:
+    enabled: true
+    size: 5Gi
+
+config:
+  DB_HOST: mysql
+  DB_PORT: "3306"
+
+# Quand true : les Secrets (mysql, app) doivent déjà exister dans le namespace
+# (créés hors Helm via SealedSecret déchiffré par le controller). Le chart ne
+# génère alors plus de Secret en clair. Utiliser pour staging/prod.
+secrets:
+  useSealedSecrets: false
+
+ingress:
+  enabled: true
+  host: pfe.local
+  tlsEnabled: false
+  tlsSecretName: pfe-tls
+
+# Requests/limits par défaut (surchargés par env)
+resources:
+  backend:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  frontend:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# Liveness/readiness probes
+probes:
+  backend:
+    path: /api/health
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  frontend:
+    path: /health
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# Stratégie de rolling update + historique des ReplicaSets conservés
+deployment:
+  strategy:
+    maxSurge: 1
+    maxUnavailable: 0
+  revisionHistoryLimit: 5
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 50
+
+prometheus:
+  enabled: true
+  image: prom/prometheus:v2.44.0
+  persistence:
+    enabled: true
+    size: 5Gi
+  scrapeInterval: 15s
+
+grafana:
+  enabled: true
+  image: grafana/grafana:10.0.0
+  adminUser: admin
+  adminPassword: admin
+  persistence:
+    enabled: true
+    size: 5Gi
+  datasource:
+    name: Prometheus
+    type: prometheus
+    url: http://{{ include "pfe.fullname" . }}-prometheus:9090
+

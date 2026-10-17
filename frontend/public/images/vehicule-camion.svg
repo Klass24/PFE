@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="320" viewBox="0 0 520 320">
+  <defs>
+    <linearGradient id="roadGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#64748B"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <linearGradient id="truckBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="cabin" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1E3A5A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sky background -->
+  <rect width="520" height="320" fill="#F1F5F9"/>
+  <!-- Horizon -->
+  <rect x="0" y="200" width="520" height="120" fill="#E2E8F0"/>
+  <!-- Road -->
+  <rect x="0" y="230" width="520" height="90" fill="url(#roadGrad)"/>
+  <!-- Road lines -->
+  <rect x="60" y="270" width="50" height="4" rx="2" fill="#F59E0B" opacity="0.9"/>
+  <rect x="150" y="270" width="50" height="4" rx="2" fill="#F59E0B" opacity="0.9"/>
+  <rect x="240" y="270" width="50" height="4" rx="2" fill="#F59E0B" opacity="0.9"/>
+  <rect x="330" y="270" width="50" height="4" rx="2" fill="#F59E0B" opacity="0.9"/>
+  <rect x="420" y="270" width="50" height="4" rx="2" fill="#F59E0B" opacity="0.9"/>
+  <!-- Road edge -->
+  <rect x="0" y="230" width="520" height="4" fill="#334155"/>
+  <rect x="0" y="316" width="520" height="4" fill="#334155"/>
+
+  <!-- Truck trailer -->
+  <rect x="60" y="155" width="200" height="88" rx="4" fill="#1E3A5A"/>
+  <!-- Trailer details -->
+  <rect x="60" y="153" width="200" height="10" rx="2" fill="#0F172A"/>
+  <rect x="65" y="165" width="186" height="4" fill="#0F172A"/>
+  <rect x="65" y="180" width="186" height="4" fill="#0F172A"/>
+  <rect x="65" y="195" width="186" height="4" fill="#0F172A"/>
+  <rect x="65" y="210" width="186" height="4" fill="#0F172A"/>
+  <!-- Company logo on trailer -->
+  <rect x="80" y="168" width="150" height="28" rx="3" fill="#0F172A"/>
+  <text x="90" y="188" fill="#2563EB" font-size="14" font-weight="bold" font-family="Poppins, Arial">FleetControl</text>
+
+  <!-- Cabin -->
+  <rect x="258" y="148" width="90" height="95" rx="6" fill="url(#cabin)"/>
+  <!-- Windshield -->
+  <rect x="264" y="155" width="58" height="38" rx="3" fill="#93C5FD" opacity="0.85"/>
+  <!-- Cabin details -->
+  <rect x="265" y="198" width="58" height="4" fill="#1E3A5A"/>
+  <rect x="280" y="205" width="12" height="30" rx="2" fill="#F59E0B"/>
+  <rect x="298" y="205" width="12" height="30" rx="2" fill="#F59E0B"/>
+  <!-- Door -->
+  <rect x="262" y="200" width="32" height="43" rx="2" fill="#1E3A5A"/>
+  <circle cx="291" cy="224" r="3" fill="#fff" opacity="0.7"/>
+  <!-- Mirror -->
+  <rect x="352" y="162" width="14" height="10" rx="2" fill="#0F172A"/>
+
+  <!-- Exhaust -->
+  <rect x="342" y="135" width="8" height="28" rx="3" fill="#334155"/>
+  <ellipse cx="346" cy="133" rx="6" ry="4" fill="#475569"/>
+  <!-- Smoke -->
+  <circle cx="346" cy="125" r="6" fill="#94A3B8" opacity="0.5"/>
+  <circle cx="350" cy="115" r="5" fill="#94A3B8" opacity="0.35"/>
+  <circle cx="344" cy="107" r="4" fill="#94A3B8" opacity="0.2"/>
+
+  <!-- Front bumper / lights -->
+  <rect x="344" y="200" width="18" height="6" rx="2" fill="#F59E0B"/>
+  <rect x="344" y="210" width="18" height="6" rx="2" fill="#EF4444"/>
+  <rect x="344" y="225" width="18" height="14" rx="2" fill="#475569"/>
+
+  <!-- Wheels -->
+  <!-- Front -->
+  <circle cx="322" cy="247" r="26" fill="#0F172A"/>
+  <circle cx="322" cy="247" r="18" fill="#1E293B"/>
+  <circle cx="322" cy="247" r="9" fill="#475569"/>
+  <circle cx="322" cy="247" r="3" fill="#64748B"/>
+  <!-- Rear double axes -->
+  <circle cx="130" cy="247" r="26" fill="#0F172A"/>
+  <circle cx="130" cy="247" r="18" fill="#1E293B"/>
+  <circle cx="130" cy="247" r="9" fill="#475569"/>
+  <circle cx="164" cy="247" r="22" fill="#0F172A"/>
+  <circle cx="164" cy="247" r="15" fill="#1E293B"/>
+  <circle cx="164" cy="247" r="7" fill="#475569"/>
+
+  <!-- Axle -->
+  <rect x="60" y="238" width="295" height="8" rx="3" fill="#0F172A"/>
+
+  <!-- Mud flap -->
+  <rect x="55" y="230" width="10" height="30" rx="1" fill="#1E293B"/>
+  <rect x="250" y="230" width="10" height="30" rx="1" fill="#1E293B"/>
+
+  <!-- Immatriculation plate -->
+  <rect x="282" y="238" width="48" height="18" rx="2" fill="#fff" stroke="#334155" stroke-width="1"/>
+  <text x="286" y="251" fill="#0F172A" font-size="10" font-family="Poppins, Arial" font-weight="bold">109-ALG-01</text>
+
+  <!-- GPS tracker badge -->
+  <rect x="305" y="153" width="38" height="16" rx="8" fill="#22C55E"/>
+  <text x="308" y="165" fill="#fff" font-size="10" font-family="Poppins, Arial" font-weight="bold">● GPS</text>
+
+  <!-- Road dirt/shadow -->
+  <ellipse cx="200" cy="274" rx="210" ry="10" fill="#5a6a72" opacity="0.2"/>
+
+  <!-- Label bar -->
+  <rect x="0" y="295" width="520" height="25" fill="#1F2D3D" opacity="0.85"/>
+  <text x="130" y="312" fill="#fff" font-size="12" font-family="Arial" font-weight="bold">Camion 109-ALG-01 — Flotte FleetControl</text>
+</svg>

@@ -1,0 +1,72 @@
+# Ignore everything by default
+*
+
+# Allow only these folders
+!backend/
+!backend/**
+!frontend/
+!frontend/**
+!mobile/
+!mobile/**
+!docker/
+!docker/**
+!k8s/
+!k8s/**
+!charts/
+!charts/**
+!.github/
+!.github/**
+!script
+# Allow docker-compose and gitignore
+!docker-compose.yml
+!.gitignore
+
+# ---- Exclusions inside allowed folders ----
+
+# Dependencies
+node_modules/
+vendor/
+backend/vendor/
+frontend/node_modules/
+
+# Build outputs
+frontend/dist/
+mobile/.dart_tool/
+mobile/build/
+
+# Environment files
+.env
+.env.local
+.env.production
+!backend/.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+backend/storage/logs/*.log
+
+# Cache
+backend/bootstrap/cache/*.php
+backend/storage/framework/cache/data/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+
+# Docker volumes
+docker/mysql/data/
+
+# Laravel storage generated files
+backend/storage/app/public/
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/testing/
+backend/storage/framework/views/

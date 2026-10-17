@@ -1,0 +1,225 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400">
+  <!-- Background -->
+  <rect width="640" height="400" fill="#F8FAFC"/>
+
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="110" height="400" fill="#0F172A"/>
+  <rect x="0" y="0" width="110" height="32" fill="#1E293B"/>
+  <!-- Logo -->
+  <rect x="8" y="6" width="20" height="20" rx="4" fill="#2563EB"/>
+  <text x="32" y="20" fill="#fff" font-size="10" font-weight="bold" font-family="Poppins, Arial">FleetControl</text>
+  <!-- Menu items -->
+  <rect x="5" y="40" width="100" height="22" rx="4" fill="#2563EB"/>
+  <text x="20" y="55" fill="#fff" font-size="9" font-family="Poppins, Arial">Dashboard</text>
+  <text x="20" y="78" fill="#94A3B8" font-size="9" font-family="Poppins, Arial">Véhicules</text>
+  <text x="20" y="98" fill="#94A3B8" font-size="9" font-family="Poppins, Arial">Chauffeurs</text>
+  <text x="20" y="118" fill="#94A3B8" font-size="9" font-family="Poppins, Arial">Missions</text>
+  <text x="20" y="138" fill="#94A3B8" font-size="9" font-family="Poppins, Arial">Dépenses</text>
+  <text x="20" y="158" fill="#94A3B8" font-size="9" font-family="Poppins, Arial">Incidents</text>
+  <text x="20" y="178" fill="#94A3B8" font-size="9" font-family="Poppins, Arial">Maintenance</text>
+  <text x="20" y="198" fill="#94A3B8" font-size="9" font-family="Poppins, Arial">Documents</text>
+  <!-- Sidebar icons -->
+  <circle cx="12" cy="53" r="4" fill="#1E3A5A"/>
+  <circle cx="12" cy="76" r="3" fill="#334155"/>
+  <circle cx="12" cy="96" r="3" fill="#334155"/>
+  <circle cx="12" cy="116" r="3" fill="#334155"/>
+  <circle cx="12" cy="136" r="3" fill="#334155"/>
+  <circle cx="12" cy="156" r="3" fill="#334155"/>
+
+  <!-- Topbar -->
+  <rect x="110" y="0" width="530" height="32" fill="#fff" stroke="#E2E8F0"/>
+  <text x="120" y="20" fill="#0F172A" font-size="12" font-weight="bold" font-family="Poppins, Arial">Tableau de bord</text>
+  <circle cx="610" cy="16" r="12" fill="#2563EB"/>
+  <text x="605" y="20" fill="#fff" font-size="9" font-family="Poppins, Arial" font-weight="bold">AD</text>
+  <circle cx="580" cy="12" r="4" fill="#EF4444"/>
+
+  <!-- KPI Cards -->
+  <!-- Card 1 -->
+  <rect x="120" y="42" width="120" height="56" rx="6" fill="#fff" stroke="#E2E8F0"/>
+  <text x="130" y="56" fill="#94A3B8" font-size="8" font-family="Poppins, Arial">VÉHICULES</text>
+  <text x="130" y="80" fill="#0F172A" font-size="18" font-weight="bold" font-family="Poppins, Arial">34</text>
+  <rect x="200" y="50" width="28" height="28" rx="14" fill="#2563EB" opacity="0.15"/>
+  <circle cx="214" cy="64" r="8" fill="#2563EB"/>
+
+  <!-- Card 2 -->
+  <rect x="250" y="42" width="120" height="56" rx="6" fill="#fff" stroke="#E2E8F0"/>
+  <text x="260" y="56" fill="#94A3B8" font-size="8" font-family="Poppins, Arial">MISSIONS</text>
+  <text x="260" y="80" fill="#0F172A" font-size="18" font-weight="bold" font-family="Poppins, Arial">12</text>
+  <rect x="330" y="50" width="28" height="28" rx="14" fill="#F59E0B" opacity="0.15"/>
+  <circle cx="344" cy="64" r="8" fill="#F59E0B"/>
+
+  <!-- Card 3 -->
+  <rect x="380" y="42" width="120" height="56" rx="6" fill="#fff" stroke="#E2E8F0"/>
+  <text x="390" y="56" fill="#94A3B8" font-size="8" font-family="Poppins, Arial">DÉPENSES</text>
+  <text x="390" y="80" fill="#0F172A" font-size="18" font-weight="bold" font-family="Poppins, Arial">18K</text>
+  <rect x="460" y="50" width="28" height="28" rx="14" fill="#22C55E" opacity="0.15"/>
+  <circle cx="474" cy="64" r="8" fill="#22C55E"/>
+
+  <!-- Card 4 -->
+  <rect x="510" y="42" width="120" height="56" rx="6" fill="#fff" stroke="#E2E8F0"/>
+  <text x="520" y="56" fill="#94A3B8" font-size="8" font-family="Poppins, Arial">ALERTES</text>
+  <text x="520" y="80" fill="#EF4444" font-size="18" font-weight="bold" font-family="Poppins, Arial">3</text>
+  <rect x="590" y="50" width="28" height="28" rx="14" fill="#EF4444" opacity="0.15"/>
+  <circle cx="604" cy="64" r="8" fill="#EF4444"/>
+
+  <!-- Bar Chart -->
+  <rect x="120" y="108" width="260" height="140" rx="6" fill="#fff" stroke="#E2E8F0"/>
+  <text x="132" y="124" fill="#0F172A" font-size="10" font-weight="bold" font-family="Poppins, Arial">Dépenses mensuelles</text>
+  <rect x="138" y="180" width="24" height="50" rx="3" fill="#2563EB"/>
+  <rect x="172" y="160" width="24" height="70" rx="3" fill="#2563EB"/>
+  <rect x="206" y="140" width="24" height="90" rx="3" fill="#1E3A5A"/>
+  <rect x="240" y="170" width="24" height="60" rx="3" fill="#22C55E"/>
+  <rect x="274" y="150" width="24" height="80" rx="3" fill="#F59E0B"/>
+  <rect x="308" y="175" width="24" height="55" rx="3" fill="#2563EB"/>
+  <rect x="342" y="165" width="24" height="65" rx="3" fill="#2563EB"/>
+
+  <!-- Pie Chart -->
+  <rect x="390" y="108" width="240" height="140" rx="6" fill="#fff" stroke="#E2E8F0"/>
+  <text x="402" y="124" fill="#0F172A" font-size="10" font-weight="bold" font-family="Poppins, Arial">État de la flotte</text>
+  <circle cx="470" cy="185" r="45" fill="#E2E8F0"/>
+  <path d="M470 140 A45 45 0 0 1 515 185 L470 185 Z" fill="#22C55E"/>
+  <path d="M515 185 A45 45 0 0 1 470 230 L470 185 Z" fill="#2563EB"/>
+  <path d="M470 230 A45 45 0 0 1 425 185 L470 185 Z" fill="#F59E0B"/>
+  <path d="M425 185 A45 45 0 0 1 470 140 L470 185 Z" fill="#EF4444"/>
+  <!-- Legend -->
+  <circle cx="545" cy="150" r="4" fill="#22C55E"/>
+  <text x="554" y="154" fill="#334155" font-size="8" font-family="Poppins, Arial">Disponible</text>
+  <circle cx="545" cy="168" r="4" fill="#2563EB"/>
+  <text x="554" y="172" fill="#334155" font-size="8" font-family="Poppins, Arial">En mission</text>
+  <circle cx="545" cy="186" r="4" fill="#F59E0B"/>
+  <text x="554" y="190" fill="#334155" font-size="8" font-family="Poppins, Arial">Maintenance</text>
+  <circle cx="545" cy="204" r="4" fill="#EF4444"/>
+  <text x="554" y="208" fill="#334155" font-size="8" font-family="Poppins, Arial">Hors service</text>
+
+  <!-- Table -->
+  <rect x="120" y="258" width="510" height="130" rx="6" fill="#fff" stroke="#E2E8F0"/>
+  <text x="132" y="278" fill="#0F172A" font-size="10" font-weight="bold" font-family="Poppins, Arial">Dernières missions</text>
+  <rect x="130" y="290" width="490" height="24" rx="4" fill="#F1F5F9"/>
+  <text x="140" y="306" fill="#94A3B8" font-size="8" font-family="Poppins, Arial">ID</text>
+  <text x="190" y="306" fill="#94A3B8" font-size="8" font-family="Poppins, Arial">Véhicule</text>
+  <text x="280" y="306" fill="#94A3B8" font-size="8" font-family="Poppins, Arial">Chauffeur</text>
+  <text x="380" y="306" fill="#94A3B8" font-size="8" font-family="Poppins, Arial">Destination</text>
+  <text x="490" y="306" fill="#94A3B8" font-size="8" font-family="Poppins, Arial">Statut</text>
+  <!-- Row 1 -->
+  <text x="140" y="330" fill="#0F172A" font-size="8" font-family="Poppins, Arial">#1234</text>
+  <text x="190" y="330" fill="#0F172A" font-size="8" font-family="Poppins, Arial">109-ALG-01</text>
+  <text x="280" y="330" fill="#0F172A" font-size="8" font-family="Poppins, Arial">Ahmed S.</text>
+  <text x="380" y="330" fill="#0F172A" font-size="8" font-family="Poppins, Arial">Oran</text>
+  <rect x="485" y="320" width="50" height="16" rx="8" fill="#22C55E" opacity="0.15"/>
+  <text x="495" y="332" fill="#22C55E" font-size="8" font-family="Poppins, Arial">Terminée</text>
+  <!-- Row 2 -->
+  <text x="140" y="354" fill="#0F172A" font-size="8" font-family="Poppins, Arial">#1235</text>
+  <text x="190" y="354" fill="#0F172A" font-size="8" font-family="Poppins, Arial">109-ALG-02</text>
+  <text x="280" y="354" fill="#0F172A" font-size="8" font-family="Poppins, Arial">Karim B.</text>
+  <text x="380" y="354" fill="#0F172A" font-size="8" font-family="Poppins, Arial">Constantine</text>
+  <rect x="485" y="344" width="50" height="16" rx="8" fill="#2563EB" opacity="0.15"/>
+  <text x="493" y="356" fill="#2563EB" font-size="8" font-family="Poppins, Arial">En cours</text>
+  <!-- Row 3 -->
+  <text x="140" y="378" fill="#0F172A" font-size="8" font-family="Poppins, Arial">#1236</text>
+  <text x="190" y="378" fill="#0F172A" font-size="8" font-family="Poppins, Arial">109-ALG-03</text>
+  <text x="280" y="378" fill="#0F172A" font-size="8" font-family="Poppins, Arial">Yacine M.</text>
+  <text x="380" y="378" fill="#0F172A" font-size="8" font-family="Poppins, Arial">Annaba</text>
+  <rect x="485" y="368" width="50" height="16" rx="8" fill="#F59E0B" opacity="0.15"/>
+  <text x="493" y="380" fill="#F59E0B" font-size="8" font-family="Poppins, Arial">Planifiée</text>
+</svg>
+  <rect x="368" y="260" width="36" height="120" rx="3" fill="#0275D8" opacity="0.85"/>
+  <rect x="418" y="290" width="36" height="90" rx="3" fill="#0275D8" opacity="0.7"/>
+  <rect x="468" y="240" width="36" height="140" rx="3" fill="#0275D8"/>
+  <rect x="518" y="270" width="36" height="110" rx="3" fill="#0275D8" opacity="0.75"/>
+  <rect x="568" y="305" width="36" height="75" rx="3" fill="#0275D8" opacity="0.65"/>
+  <rect x="618" y="255" width="36" height="125" rx="3" fill="#0275D8" opacity="0.9"/>
+  <!-- axis -->
+  <line x1="252" y1="395" x2="708" y2="395" stroke="#e8ecef" stroke-width="1"/>
+  <text x="274" y="410" fill="#8e9bb0" font-size="10" font-family="Arial">Oct</text>
+  <text x="324" y="410" fill="#8e9bb0" font-size="10" font-family="Arial">Nov</text>
+  <text x="374" y="410" fill="#8e9bb0" font-size="10" font-family="Arial">Déc</text>
+  <text x="424" y="410" fill="#8e9bb0" font-size="10" font-family="Arial">Jan</text>
+  <text x="474" y="410" fill="#8e9bb0" font-size="10" font-family="Arial">Fév</text>
+  <text x="524" y="410" fill="#8e9bb0" font-size="10" font-family="Arial">Mar</text>
+  <text x="574" y="410" fill="#8e9bb0" font-size="10" font-family="Arial">Avr</text>
+  <text x="624" y="410" fill="#8e9bb0" font-size="10" font-family="Arial">Mai</text>
+
+  <!-- Pie chart: Statut véhicules -->
+  <rect x="732" y="178" width="230" height="240" rx="6" fill="#fff" stroke="#e8ecef"/>
+  <text x="748" y="202" fill="#2f3640" font-size="13" font-weight="bold" font-family="Arial">Statut véhicules</text>
+  <!-- Donut -->
+  <circle cx="847" cy="308" r="70" fill="none" stroke="#5cb85c" stroke-width="30" stroke-dasharray="197 314" stroke-dashoffset="78"/>
+  <circle cx="847" cy="308" r="70" fill="none" stroke="#0275D8" stroke-width="30" stroke-dasharray="82 314" stroke-dashoffset="-119"/>
+  <circle cx="847" cy="308" r="70" fill="none" stroke="#f0ad4e" stroke-width="30" stroke-dasharray="35 314" stroke-dashoffset="-201"/>
+  <text x="847" y="312" text-anchor="middle" fill="#2f3640" font-size="18" font-weight="bold" font-family="Arial">34</text>
+  <text x="747" y="400" fill="#5cb85c" font-size="11" font-family="Arial">■ Disponibles (20)</text>
+  <text x="830" y="400" fill="#0275D8" font-size="11" font-family="Arial">■ En mission (10)</text>
+  <text x="747" y="415" fill="#f0ad4e" font-size="11" font-family="Arial">■ En maintenance (4)</text>
+
+  <!-- Table missions récentes -->
+  <rect x="978" y="178" width="286" height="240" rx="6" fill="#fff" stroke="#e8ecef"/>
+  <text x="994" y="202" fill="#2f3640" font-size="13" font-weight="bold" font-family="Arial">Missions récentes</text>
+  <rect x="978" y="210" width="286" height="24" fill="#f8f9fa"/>
+  <text x="990" y="228" fill="#6c757d" font-size="11" font-weight="bold" font-family="Arial">Destination</text>
+  <text x="1120" y="228" fill="#6c757d" font-size="11" font-weight="bold" font-family="Arial">Statut</text>
+  <text x="1190" y="228" fill="#6c757d" font-size="11" font-weight="bold" font-family="Arial">Chauffeur</text>
+  <line x1="978" y1="236" x2="1264" y2="236" stroke="#e8ecef"/>
+  <!-- row 1 -->
+  <text x="990" y="254" fill="#2f3640" font-size="12" font-family="Arial">Alger → Oran</text>
+  <rect x="1110" y="243" width="54" height="16" rx="8" fill="#dff0d8"/>
+  <text x="1118" y="255" fill="#3c763d" font-size="10" font-family="Arial">Terminée</text>
+  <text x="1190" y="254" fill="#2f3640" font-size="12" font-family="Arial">A. Benali</text>
+  <line x1="978" y1="262" x2="1264" y2="262" stroke="#f0f3f4"/>
+  <!-- row 2 -->
+  <text x="990" y="280" fill="#2f3640" font-size="12" font-family="Arial">Blida → Annaba</text>
+  <rect x="1110" y="269" width="54" height="16" rx="8" fill="#d9edf7"/>
+  <text x="1115" y="281" fill="#31708f" font-size="10" font-family="Arial">En cours</text>
+  <text x="1190" y="280" fill="#2f3640" font-size="12" font-family="Arial">M. Khaldi</text>
+  <line x1="978" y1="288" x2="1264" y2="288" stroke="#f0f3f4"/>
+  <!-- row 3 -->
+  <text x="990" y="306" fill="#2f3640" font-size="12" font-family="Arial">Sétif → Jijel</text>
+  <rect x="1110" y="295" width="60" height="16" rx="8" fill="#fcf8e3"/>
+  <text x="1115" y="307" fill="#8a6d3b" font-size="10" font-family="Arial">Planifiée</text>
+  <text x="1190" y="306" fill="#2f3640" font-size="12" font-family="Arial">K. Rahali</text>
+  <line x1="978" y1="314" x2="1264" y2="314" stroke="#f0f3f4"/>
+  <!-- row 4 -->
+  <text x="990" y="332" fill="#2f3640" font-size="12" font-family="Arial">Tizi → Béjaïa</text>
+  <rect x="1110" y="321" width="54" height="16" rx="8" fill="#dff0d8"/>
+  <text x="1118" y="333" fill="#3c763d" font-size="10" font-family="Arial">Terminée</text>
+  <text x="1190" y="332" fill="#2f3640" font-size="12" font-family="Arial">Y. Abbas</text>
+
+  <!-- Alertes / Notifications -->
+  <rect x="236" y="434" width="480" height="160" rx="6" fill="#fff" stroke="#e8ecef"/>
+  <text x="252" y="458" fill="#2f3640" font-size="13" font-weight="bold" font-family="Arial">Alertes récentes</text>
+  <rect x="236" y="464" width="480" height="28" fill="#fff2cc"/>
+  <text x="252" y="483" fill="#8a6d3b" font-size="12" font-family="Arial">⚠ Assurance expirante — Véhicule 109-ALG-01 (dans 7 jours)</text>
+  <rect x="236" y="494" width="480" height="28" fill="#f2dede"/>
+  <text x="252" y="513" fill="#a94442" font-size="12" font-family="Arial">🔴 Incident signalé — Panne mécanique M. Khaldi</text>
+  <rect x="236" y="524" width="480" height="28" fill="#dff0d8"/>
+  <text x="252" y="543" fill="#3c763d" font-size="12" font-family="Arial">✅ Mission terminée — Alger → Oran (A. Benali)</text>
+  <rect x="236" y="554" width="480" height="28" fill="#d9edf7"/>
+  <text x="252" y="573" fill="#31708f" font-size="12" font-family="Arial">ℹ Contrôle technique prévu — Camion 442-BL-09 (dans 14 jours)</text>
+
+  <!-- Carte véhicules en maintenance -->
+  <rect x="732" y="434" width="530" height="160" rx="6" fill="#fff" stroke="#e8ecef"/>
+  <text x="748" y="458" fill="#2f3640" font-size="13" font-weight="bold" font-family="Arial">Véhicules en maintenance</text>
+  <rect x="732" y="464" width="530" height="24" fill="#f8f9fa"/>
+  <text x="744" y="480" fill="#6c757d" font-size="11" font-weight="bold" font-family="Arial">Immatriculation</text>
+  <text x="880" y="480" fill="#6c757d" font-size="11" font-weight="bold" font-family="Arial">Type</text>
+  <text x="970" y="480" fill="#6c757d" font-size="11" font-weight="bold" font-family="Arial">Prévu le</text>
+  <text x="1070" y="480" fill="#6c757d" font-size="11" font-weight="bold" font-family="Arial">Statut</text>
+  <text x="744" y="502" fill="#2f3640" font-size="12" font-family="Arial">109-ALG-01</text>
+  <text x="880" y="502" fill="#2f3640" font-size="12" font-family="Arial">Révision</text>
+  <text x="970" y="502" fill="#2f3640" font-size="12" font-family="Arial">05/05/2026</text>
+  <rect x="1060" y="490" width="60" height="16" rx="8" fill="#fcf8e3"/>
+  <text x="1065" y="502" fill="#8a6d3b" font-size="10" font-family="Arial">En attente</text>
+  <text x="744" y="526" fill="#2f3640" font-size="12" font-family="Arial">442-BL-09</text>
+  <text x="880" y="526" fill="#2f3640" font-size="12" font-family="Arial">Vidange</text>
+  <text x="970" y="526" fill="#2f3640" font-size="12" font-family="Arial">08/05/2026</text>
+  <rect x="1060" y="514" width="60" height="16" rx="8" fill="#d9edf7"/>
+  <text x="1065" y="526" fill="#31708f" font-size="10" font-family="Arial">Planifiée</text>
+  <text x="744" y="550" fill="#2f3640" font-size="12" font-family="Arial">236-SET-11</text>
+  <text x="880" y="550" fill="#2f3640" font-size="12" font-family="Arial">Freins</text>
+  <text x="970" y="550" fill="#2f3640" font-size="12" font-family="Arial">10/05/2026</text>
+  <rect x="1060" y="538" width="60" height="16" rx="8" fill="#f2dede"/>
+  <text x="1065" y="550" fill="#a94442" font-size="10" font-family="Arial">Urgent</text>
+
+  <!-- Bottom bar -->
+  <rect x="220" y="750" width="1060" height="30" fill="#f8f9fa" stroke="#e8ecef"/>
+  <text x="236" y="768" fill="#8e9bb0" font-size="11" font-family="Arial">© 2026 FleetControl — Version 1.0.0 — Tous les services opérationnels ✓</text>
+</svg>

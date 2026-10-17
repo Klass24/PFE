@@ -1,0 +1,60 @@
+{{- if .Values.prometheus.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pfe.fullname" . }}-prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "pfe.fullname" . }}-prometheus
+  template:
+    metadata:
+      labels:
+        app: {{ include "pfe.fullname" . }}-prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: {{ .Values.prometheus.image }}
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+          ports:
+            - containerPort: 9090
+              name: web
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+            - name: data
+              mountPath: /prometheus
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "pfe.fullname" . }}-prometheus-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "pfe.fullname" . }}-prometheus-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "pfe.fullname" . }}-prometheus-pvc
+spec:
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: {{ .Values.prometheus.persistence.size }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pfe.fullname" . }}-prometheus
+spec:
+  selector:
+    app: {{ include "pfe.fullname" . }}-prometheus
+  ports:
+    - port: 9090
+      targetPort: 9090
+{{- end }}

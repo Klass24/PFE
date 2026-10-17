@@ -1,0 +1,71 @@
+{{- if .Values.grafana.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pfe.fullname" . }}-grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "pfe.fullname" . }}-grafana
+  template:
+    metadata:
+      labels:
+        app: {{ include "pfe.fullname" . }}-grafana
+    spec:
+      containers:
+        - name: grafana
+          image: {{ .Values.grafana.image }}
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: {{ .Values.grafana.adminUser | quote }}
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: {{ .Values.grafana.adminPassword | quote }}
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: grafana-data
+              mountPath: /var/lib/grafana
+            - name: grafana-datasource
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-logo
+              mountPath: /usr/share/grafana/public/img/
+              readOnly: true
+      volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: {{ include "pfe.fullname" . }}-grafana-pvc
+        - name: grafana-datasource
+          configMap:
+            name: {{ include "pfe.fullname" . }}-grafana-datasource
+        - name: grafana-logo
+          configMap:
+            name: {{ include "pfe.fullname" . }}-grafana-logo
+        - name: grafana-logo
+          configMap:
+            name: {{ include "pfe.fullname" . }}-grafana-logo
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "pfe.fullname" . }}-grafana-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.grafana.persistence.size }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pfe.fullname" . }}-grafana
+spec:
+  selector:
+    app: {{ include "pfe.fullname" . }}-grafana
+  ports:
+    - port: 3000
+      targetPort: 3000
+{{- end }}

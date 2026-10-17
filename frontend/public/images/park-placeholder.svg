@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <rect width="100%" height="100%" fill="#F8FAFC"/>
+  <g transform="translate(20,30)">
+    <rect x="0" y="0" width="560" height="340" rx="12" fill="#ffffff" stroke="#E2E8F0"/>
+    
+    <!-- Parking illustration -->
+    <rect x="40" y="100" width="480" height="180" rx="8" fill="#64748B"/>
+    
+    <!-- Parking lines -->
+    <rect x="80" y="110" width="3" height="80" fill="#F59E0B"/>
+    <rect x="160" y="110" width="3" height="80" fill="#F59E0B"/>
+    <rect x="240" y="110" width="3" height="80" fill="#F59E0B"/>
+    <rect x="320" y="110" width="3" height="80" fill="#F59E0B"/>
+    <rect x="400" y="110" width="3" height="80" fill="#F59E0B"/>
+    <rect x="480" y="110" width="3" height="80" fill="#F59E0B"/>
+    
+    <!-- Vehicles -->
+    <rect x="95" y="120" width="50" height="60" rx="4" fill="#2563EB"/>
+    <rect x="175" y="120" width="50" height="60" rx="4" fill="#22C55E"/>
+    <rect x="335" y="120" width="50" height="60" rx="4" fill="#F59E0B"/>
+    
+    <!-- Center lane -->
+    <rect x="40" y="190" width="480" height="30" fill="#475569"/>
+    <text x="280" y="210" font-size="14" text-anchor="middle" fill="#F59E0B" font-family="Poppins, Arial">→ → →</text>
+    
+    <text x="280" y="60" font-size="16" text-anchor="middle" fill="#1E3A5A" font-family="Poppins, Arial" font-weight="bold">Vue du parc véhicules</text>
+  </g>
+</svg>

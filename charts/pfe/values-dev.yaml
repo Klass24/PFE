@@ -1,0 +1,49 @@
+# Overrides pour l'environnement DEV
+# Usage: helm upgrade --install pfe-dev charts/pfe -f charts/pfe/values-dev.yaml --namespace dev
+
+namespace: dev
+
+replicaCount:
+  backend: 1
+  frontend: 1
+
+image:
+  repositoryBackend: ghcr.io/OWNER/pfe-backend
+  repositoryFrontend: ghcr.io/OWNER/pfe-frontend
+  tag: latest # surchargé en CI par --set image.tag=sha-<sha>-dev
+  pullPolicy: IfNotPresent  # Images chargées via kind load docker-image
+  usePullSecret: false      # Pas besoin pour Kind (images locales)
+
+ingress:
+  host: dev.pfe.example.com
+  tlsEnabled: false
+
+resources:
+  backend:
+    requests: { cpu: 50m, memory: 96Mi }
+    limits: { cpu: 250m, memory: 192Mi }
+  frontend:
+    requests: { cpu: 25m, memory: 32Mi }
+    limits: { cpu: 100m, memory: 64Mi }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+
+deployment:
+  revisionHistoryLimit: 3
+
+mysql:
+  enabled: true
+  persistence:
+    size: 2Gi
+
+# Secrets gérés en clair via values pour dev uniquement (non sensible / données de test)
+secrets:
+  useSealedSecrets: false
+
+prometheus:
+  enabled: false
+grafana:
+  enabled: false

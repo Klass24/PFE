@@ -1,0 +1,51 @@
+# Overrides pour l'environnement STAGING
+# Usage: helm upgrade --install pfe-staging charts/pfe -f charts/pfe/values-staging.yaml --namespace staging
+
+namespace: staging
+
+replicaCount:
+  backend: 1
+  frontend: 1
+
+image:
+  repositoryBackend: ghcr.io/OWNER/pfe-backend
+  repositoryFrontend: ghcr.io/OWNER/pfe-frontend
+  tag: latest # surchargé en CI par --set image.tag=sha-<sha>
+  usePullSecret: true
+
+ingress:
+  host: staging.pfe.example.com
+  tlsEnabled: true
+  tlsSecretName: pfe-staging-tls
+
+resources:
+  backend:
+    requests: { cpu: 150m, memory: 192Mi }
+    limits: { cpu: 500m, memory: 384Mi }
+  frontend:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { cpu: 200m, memory: 128Mi }
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 60
+
+deployment:
+  revisionHistoryLimit: 5
+
+mysql:
+  enabled: true
+  persistence:
+    size: 5Gi
+
+# Secrets réels chiffrés via Sealed Secrets, appliqués une fois hors Helm
+# (voir k8s/sealed-secrets/staging/). Le chart ne crée pas de Secret en clair.
+secrets:
+  useSealedSecrets: true
+
+prometheus:
+  enabled: true
+grafana:
+  enabled: true

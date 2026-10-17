@@ -1,0 +1,87 @@
+{{- if .Values.mysql.enabled }}
+{{- if not .Values.secrets.useSealedSecrets }}
+# En dev : Secret généré directement par Helm à partir des values.
+# En staging/prod (secrets.useSealedSecrets: true), ce Secret est créé hors Helm
+# via un SealedSecret déchiffré par le controller (voir k8s/sealed-secrets/{env}/).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "pfe.fullname" . }}-mysql-secret
+type: Opaque
+stringData:
+  mysql-root-password: {{ .Values.mysql.rootPassword | quote }}
+  mysql-user: {{ .Values.mysql.user | quote }}
+  mysql-password: {{ .Values.mysql.password | quote }}
+{{- end }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "pfe.fullname" . }}-mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mysql.persistence.size }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pfe.fullname" . }}-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "pfe.fullname" . }}-mysql
+  template:
+    metadata:
+      labels:
+        app: {{ include "pfe.fullname" . }}-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pfe.fullname" . }}-mysql-secret
+                  key: mysql-root-password
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mysql.database | quote }}
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pfe.fullname" . }}-mysql-secret
+                  key: mysql-user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pfe.fullname" . }}-mysql-secret
+                  key: mysql-password
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: {{ include "pfe.fullname" . }}-mysql-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pfe.fullname" . }}-mysql
+spec:
+  selector:
+    app: {{ include "pfe.fullname" . }}-mysql
+  ports:
+    - port: 3306
+      targetPort: 3306
+  clusterIP: None
+{{- end }}

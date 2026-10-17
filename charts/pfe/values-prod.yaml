@@ -1,0 +1,54 @@
+# Overrides pour l'environnement PROD
+# Usage: helm upgrade --install pfe-prod charts/pfe -f charts/pfe/values-prod.yaml --namespace prod
+
+namespace: prod
+
+replicaCount:
+  backend: 1
+  frontend: 1
+
+image:
+  repositoryBackend: ghcr.io/OWNER/pfe-backend
+  repositoryFrontend: ghcr.io/OWNER/pfe-frontend
+  tag: latest # toujours surchargé en CI par --set image.tag=<git-tag|sha> — jamais "latest" en réalité
+  usePullSecret: true
+
+ingress:
+  host: pfe.example.com
+  tlsEnabled: true
+  tlsSecretName: pfe-prod-tls
+
+resources:
+  backend:
+    requests: { cpu: 250m, memory: 256Mi }
+    limits: { cpu: 1000m, memory: 512Mi }
+  frontend:
+    requests: { cpu: 100m, memory: 96Mi }
+    limits: { cpu: 300m, memory: 192Mi }
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
+
+deployment:
+  strategy:
+    maxSurge: 1
+    maxUnavailable: 0
+  revisionHistoryLimit: 10
+
+mysql:
+  enabled: true
+  persistence:
+    size: 20Gi
+
+# Secrets réels chiffrés via Sealed Secrets, appliqués une fois hors Helm
+# (voir k8s/sealed-secrets/prod/). Le chart ne crée pas de Secret en clair.
+secrets:
+  useSealedSecrets: true
+
+prometheus:
+  enabled: true
+grafana:
+  enabled: true

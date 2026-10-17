@@ -1,0 +1,14 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circle background -->
+  <circle cx="60" cy="60" r="56" fill="#E8F4FD" stroke="#2563EB" stroke-width="2"/>
+  
+  <!-- Performance chart icon -->
+  <rect x="30" y="70" width="12" height="25" rx="2" fill="#2563EB" opacity="0.4"/>
+  <rect x="48" y="55" width="12" height="40" rx="2" fill="#2563EB" opacity="0.6"/>
+  <rect x="66" y="40" width="12" height="55" rx="2" fill="#2563EB" opacity="0.8"/>
+  <rect x="84" y="25" width="12" height="70" rx="2" fill="#2563EB"/>
+  
+  <!-- Arrow up -->
+  <path d="M30 30L90 20" stroke="#22C55E" stroke-width="3" stroke-linecap="round"/>
+  <path d="M85 15L90 20L85 25" stroke="#22C55E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: fleetcontrol
+data:
+  APP_NAME: "FleetControl"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  APP_URL: "http://fleetcontrol.local"
+
+  LOG_CHANNEL: "stderr"
+  LOG_LEVEL: "info"
+
+  DB_CONNECTION: "mysql"
+  DB_HOST: "mysql"
+  DB_PORT: "3306"
+  DB_DATABASE: "fleetcontrol"
+
+  CACHE_STORE: "redis"
+
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+
+  SESSION_DRIVER: "redis"
+
+  QUEUE_CONNECTION: "redis"
