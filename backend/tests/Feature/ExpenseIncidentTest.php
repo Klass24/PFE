@@ -37,7 +37,7 @@ class ExpenseTest extends TestCase
             'license_number' => 'EXP-LIC-001',
             'license_expiry' => now()->addYear(),
             'phone'          => '+242060000002',
-            'status'         => 'active',
+            'status'         => 'available',
         ]);
 
         $this->mission = Mission::create([
@@ -110,7 +110,7 @@ class IncidentTest extends TestCase
             'license_number' => 'INC-LIC-001',
             'license_expiry' => now()->addYear(),
             'phone'          => '+242060000003',
-            'status'         => 'active',
+            'status'         => 'available',
         ]);
 
         $this->mission = Mission::create([

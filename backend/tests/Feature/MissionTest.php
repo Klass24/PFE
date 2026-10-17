@@ -36,7 +36,7 @@ class MissionTest extends TestCase
             'license_number' => 'LIC-' . rand(1000, 9999),
             'license_expiry' => now()->addYear(),
             'phone'          => '+242060000001',
-            'status'         => 'active',
+            'status'         => 'available',
         ]);
     }
 

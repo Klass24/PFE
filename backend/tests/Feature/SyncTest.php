@@ -48,7 +48,7 @@ class SyncTest extends TestCase
             'license_number' => 'SYNC-LIC',
             'license_expiry' => now()->addYear(),
             'phone'          => '+242060000099',
-            'status'         => 'active',
+            'status'         => 'available',
         ]);
 
         $mission = \App\Modules\Mission\Models\Mission::create([

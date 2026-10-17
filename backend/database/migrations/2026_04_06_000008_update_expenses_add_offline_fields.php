@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -17,9 +18,11 @@ return new class extends Migration
         });
 
         // Ajouter 'weighing' (pesage) à l'enum type via SQL brut
-        \Illuminate\Support\Facades\DB::statement(
-            "ALTER TABLE expenses MODIFY COLUMN type ENUM('fuel','toll','repair','parking','weighing','other') NOT NULL"
-        );
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement(
+                "ALTER TABLE expenses MODIFY COLUMN type ENUM('fuel','toll','repair','parking','weighing','other') NOT NULL"
+            );
+        }
     }
 
     public function down(): void
@@ -28,8 +31,10 @@ return new class extends Migration
             $table->dropColumn(['date_saisie_reelle', 'date_reception_serveur', 'device_id', 'sync_status']);
         });
 
-        \Illuminate\Support\Facades\DB::statement(
-            "ALTER TABLE expenses MODIFY COLUMN type ENUM('fuel','toll','repair','parking','other') NOT NULL"
-        );
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement(
+                "ALTER TABLE expenses MODIFY COLUMN type ENUM('fuel','toll','repair','parking','other') NOT NULL"
+            );
+        }
     }
 };

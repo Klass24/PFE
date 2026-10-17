@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,9 +17,11 @@ return new class extends Migration
         });
 
         // Étendre l'enum type avec les nouveaux cas
-        \Illuminate\Support\Facades\DB::statement(
-            "ALTER TABLE incidents MODIFY COLUMN type ENUM('accident','breakdown','flat_tire','traffic','police_check','mechanical_issue','other') NOT NULL"
-        );
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement(
+                "ALTER TABLE incidents MODIFY COLUMN type ENUM('accident','breakdown','flat_tire','traffic','police_check','mechanical_issue','other') NOT NULL"
+            );
+        }
     }
 
     public function down(): void
@@ -27,8 +30,10 @@ return new class extends Migration
             $table->dropColumn(['reported_at', 'date_reception_serveur', 'device_id', 'sync_status']);
         });
 
-        \Illuminate\Support\Facades\DB::statement(
-            "ALTER TABLE incidents MODIFY COLUMN type ENUM('accident','breakdown','flat_tire','traffic','other') NOT NULL"
-        );
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement(
+                "ALTER TABLE incidents MODIFY COLUMN type ENUM('accident','breakdown','flat_tire','traffic','other') NOT NULL"
+            );
+        }
     }
 };
