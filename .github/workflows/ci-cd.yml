@@ -87,7 +87,7 @@ jobs:
 
       - name: Configure Composer GitHub authentication
         run: |
-          composer config --global github-oauth.github.com "${{ secrets.COMPOSER_GH_TOKEN }}"
+          composer config --global github-oauth.github.com "${{ github.token }}"
 
       - name: Install dependencies
         run: |
@@ -223,6 +223,7 @@ jobs:
 
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
+      owner: ${{ steps.tag.outputs.owner }}
 
     steps:
 
@@ -250,6 +251,8 @@ jobs:
 
           echo "Generated tag: ${tag}"
           echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          echo "owner=${owner}" >> "${GITHUB_OUTPUT}"
 
 
   # ============================================================
@@ -297,7 +300,7 @@ jobs:
         id: vars
         shell: bash
         run: |
-          image="ghcr.io/${{ github.repository_owner }}/pfe-backend"
+          image="ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-backend"
 
           echo "image=${image}:${{ needs.set-tag.outputs.tag }}" >> "${GITHUB_OUTPUT}"
 
@@ -360,7 +363,7 @@ jobs:
         id: vars
         shell: bash
         run: |
-          image="ghcr.io/${{ github.repository_owner }}/pfe-frontend"
+          image="ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-frontend"
 
           echo "image=${image}:${{ needs.set-tag.outputs.tag }}" >> "${GITHUB_OUTPUT}"
 
@@ -619,11 +622,11 @@ jobs:
 
           Write-Host ""
           Write-Host "Backend:"
-          Write-Host "ghcr.io/${{ github.repository_owner }}/pfe-backend:$tag"
+          Write-Host "ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-backend:$tag"
 
           Write-Host ""
           Write-Host "Frontend:"
-          Write-Host "ghcr.io/${{ github.repository_owner }}/pfe-frontend:$tag"
+          Write-Host "ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-frontend:$tag"
 
       # --------------------------------------------------------
       # PULL BACKEND
@@ -634,7 +637,7 @@ jobs:
         run: |
 
           $tag = "${{ needs.set-tag.outputs.tag }}"
-          $image = "ghcr.io/${{ github.repository_owner }}/pfe-backend:$tag"
+          $image = "ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-backend:$tag"
 
           Write-Host "Pulling backend:"
           Write-Host $image
@@ -656,7 +659,7 @@ jobs:
         run: |
 
           $tag = "${{ needs.set-tag.outputs.tag }}"
-          $image = "ghcr.io/${{ github.repository_owner }}/pfe-frontend:$tag"
+          $image = "ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-frontend:$tag"
 
           Write-Host "Pulling frontend:"
           Write-Host $image
@@ -678,7 +681,7 @@ jobs:
         run: |
 
           $tag = "${{ needs.set-tag.outputs.tag }}"
-          $image = "ghcr.io/${{ github.repository_owner }}/pfe-backend:$tag"
+          $image = "ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-backend:$tag"
 
           Write-Host "Loading backend into Kind:"
           Write-Host $image
@@ -699,7 +702,7 @@ jobs:
         run: |
 
           $tag = "${{ needs.set-tag.outputs.tag }}"
-          $image = "ghcr.io/${{ github.repository_owner }}/pfe-frontend:$tag"
+          $image = "ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-frontend:$tag"
 
           Write-Host "Loading frontend into Kind:"
           Write-Host $image
@@ -748,8 +751,8 @@ jobs:
             --namespace dev `
             --create-namespace `
             -f charts/pfe/values-dev.yaml `
-            --set image.repositoryBackend=ghcr.io/${{ github.repository_owner }}/pfe-backend `
-            --set image.repositoryFrontend=ghcr.io/${{ github.repository_owner }}/pfe-frontend `
+            --set image.repositoryBackend=ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-backend `
+            --set image.repositoryFrontend=ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-frontend `
             --set image.tag=${{ needs.set-tag.outputs.tag }} `
             --set image.pullPolicy=IfNotPresent `
             --set image.usePullSecret=false `
@@ -1051,8 +1054,8 @@ jobs:
             --namespace staging `
             --create-namespace `
             -f charts/pfe/values-staging.yaml `
-            --set image.repositoryBackend=ghcr.io/${{ github.repository_owner }}/pfe-backend `
-            --set image.repositoryFrontend=ghcr.io/${{ github.repository_owner }}/pfe-frontend `
+            --set image.repositoryBackend=ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-backend `
+            --set image.repositoryFrontend=ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-frontend `
             --set image.tag=${{ needs.set-tag.outputs.tag }} `
             --set image.pullPolicy=Always `
             --set image.usePullSecret=true `
@@ -1206,8 +1209,8 @@ jobs:
             --namespace prod `
             --create-namespace `
             -f charts/pfe/values-prod.yaml `
-            --set image.repositoryBackend=ghcr.io/${{ github.repository_owner }}/pfe-backend `
-            --set image.repositoryFrontend=ghcr.io/${{ github.repository_owner }}/pfe-frontend `
+            --set image.repositoryBackend=ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-backend `
+            --set image.repositoryFrontend=ghcr.io/${{ needs.set-tag.outputs.owner }}/pfe-frontend `
             --set image.tag=${{ needs.set-tag.outputs.tag }} `
             --set image.pullPolicy=Always `
             --set image.usePullSecret=true `

@@ -10,7 +10,7 @@ use App\Modules\Incident\Models\Incident;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
-class ExpenseTest extends TestCase
+class ExpenseIncidentTest extends TestCase
 {
     private Mission $mission;
 
@@ -37,7 +37,7 @@ class ExpenseTest extends TestCase
             'license_number' => 'EXP-LIC-001',
             'license_expiry' => now()->addYear(),
             'phone'          => '+242060000002',
-            'status'         => 'active',
+            'status'         => 'available',
         ]);
 
         $this->mission = Mission::create([
@@ -62,8 +62,7 @@ class ExpenseTest extends TestCase
     public function test_admin_can_create_expense(): void
     {
         $response = $this->actingAsAdmin()
-            ->postJson('/api/v1/expenses', [
-                'mission_id' => $this->mission->uuid,
+            ->postJson("/api/v1/missions/{$this->mission->uuid}/expenses", [
                 'type'       => 'fuel',
                 'amount'     => 5000.00,
                 'liters'     => 45.5,
@@ -77,7 +76,7 @@ class ExpenseTest extends TestCase
     public function test_create_expense_validation(): void
     {
         $response = $this->actingAsAdmin()
-            ->postJson('/api/v1/expenses', []);
+            ->postJson("/api/v1/missions/{$this->mission->uuid}/expenses", []);
 
         $response->assertStatus(422);
     }
@@ -110,7 +109,7 @@ class IncidentTest extends TestCase
             'license_number' => 'INC-LIC-001',
             'license_expiry' => now()->addYear(),
             'phone'          => '+242060000003',
-            'status'         => 'active',
+            'status'         => 'available',
         ]);
 
         $this->mission = Mission::create([

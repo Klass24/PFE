@@ -1,0 +1,65 @@
+name: SonarCloud
+
+on:
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/sonarcloud.yml"
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/sonarcloud.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  sonarcloud:
+    name: PHPUnit and SonarCloud analysis
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3 with Xdebug
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Configure Composer GitHub authentication
+        run: composer config --global github-oauth.github.com "${{ github.token }}"
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Run PHPUnit and generate coverage
+        env:
+          XDEBUG_MODE: coverage
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+
+      - name: Verify coverage report
+        run: test -s coverage.xml
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v8.3.0
+        with:
+          args: >-
+            -Dsonar.projectBaseDir=backend
+            -Dsonar.sources=app
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

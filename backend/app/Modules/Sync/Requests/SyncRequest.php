@@ -13,7 +13,7 @@ class SyncRequest extends FormRequest
         return [
             'device_id'                     => 'required|string|max:100',
             'last_sync_at'                  => 'nullable|date',
-            'operations'                    => 'required|array|min:1|max:500',
+            'operations'                    => 'present|array|max:500',
             'operations.*.local_uuid'       => 'required|uuid',
             'operations.*.type'             => 'required|in:expense,incident,checklist',
             'operations.*.action'           => 'required|in:create,update,delete',
