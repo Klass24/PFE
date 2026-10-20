@@ -61,10 +61,8 @@ backend/storage/framework/cache/data/*
 backend/storage/framework/sessions/*
 backend/storage/framework/views/*
 
-# Docker volumes
 docker/mysql/data/
 
-# Laravel storage generated files
 backend/storage/app/public/
 backend/storage/framework/cache/
 backend/storage/framework/sessions/
