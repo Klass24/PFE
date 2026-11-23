@@ -35,9 +35,9 @@ use App\Modules\Vehicle\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicle\Services\VehicleService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\ValidationException;
 use Mockery;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
 class ModuleServicesTest extends TestCase
@@ -122,8 +122,9 @@ class ModuleServicesTest extends TestCase
         try {
             (new PricingService($repository))->getByUuid('unknown');
             $this->fail('An unknown plan must return a not found response.');
-        } catch (HttpResponseException $exception) {
-            $this->assertSame(404, $exception->getResponse()->getStatusCode());
+        } catch (NotFoundHttpException $exception) {
+            $this->assertSame(404, $exception->getStatusCode());
+            $this->assertSame('Plan introuvable.', $exception->getMessage());
         }
     }
 
