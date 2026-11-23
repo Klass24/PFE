@@ -80,6 +80,27 @@ class ExpenseIncidentTest extends TestCase
 
         $response->assertStatus(422);
     }
+
+    public function test_incident_can_be_reported_deduplicated_listed_and_deleted(): void
+    {
+        $this->actingAsAdmin();
+        $data = [
+            'type' => 'breakdown',
+            'description' => 'Engine trouble',
+            'device_id' => 'device-1',
+            'reported_at' => '2025-01-01 10:00:00',
+        ];
+        $url = '/api/v1/missions/' . $this->mission->uuid . '/incidents';
+        $first = $this->postJson($url, $data)->assertCreated();
+        $uuid = $first->json('data.uuid');
+        $this->postJson($url, $data)->assertCreated()->assertJsonPath('data.uuid', $uuid);
+        $this->assertDatabaseCount('incidents', 1);
+        $this->getJson('/api/v1/incidents?type=breakdown')->assertOk()->assertJsonFragment(['uuid' => $uuid]);
+        $this->getJson($url)->assertOk()->assertJsonFragment(['uuid' => $uuid]);
+        $this->getJson('/api/v1/incidents/' . $uuid)->assertOk()->assertJsonPath('data.uuid', $uuid);
+        $this->deleteJson('/api/v1/incidents/' . $uuid)->assertOk();
+        $this->assertDatabaseMissing('incidents', ['uuid' => $uuid]);
+    }
 }
 
 class IncidentTest extends TestCase
