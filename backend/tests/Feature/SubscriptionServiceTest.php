@@ -74,6 +74,8 @@ class SubscriptionServiceTest extends TestCase
         $this->getJson('/api/v1/subscriptions/current')->assertOk()->assertJsonPath('data', null);
         $this->postJson('/api/v1/subscriptions/change-plan', ['plan' => 'enterprise'])
             ->assertOk()->assertJsonPath('data.plan', 'enterprise');
+        // Simulate a fresh authenticated user for the next HTTP request.
+        $this->actingAs($this->admin->fresh(), 'sanctum');
         $this->getJson('/api/v1/subscriptions/current')->assertOk()->assertJsonPath('data.plan', 'enterprise');
         $this->getJson('/api/v1/subscriptions/quotas')->assertOk()->assertJsonPath('data.users.max', 999);
         $this->postJson('/api/v1/subscriptions/change-plan', ['plan' => 'invalid'])->assertUnprocessable();
