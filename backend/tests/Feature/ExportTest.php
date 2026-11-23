@@ -91,6 +91,24 @@ class ExportTest extends TestCase
         $response = $this->get('/api/v1/export/vehicles?brand=NotFound');
         $response->assertOk();
         $this->assertStringNotContainsString('EXPORT-001', $response->streamedContent());
+
+        foreach (['expired', 'valid'] as $status) {
+            $response = $this->get('/api/v1/export/documents?status=' . $status);
+            $response->assertOk();
+            $this->assertStringNotContainsString('insurance.pdf', $response->streamedContent());
+        }
+        $today = now()->toDateString();
+        $filtered = [
+            '/api/v1/export/vehicles?plate_number=EXPORT&model=Hilux&fuel_type=diesel&from=' . $today . '&to=' . $today,
+            '/api/v1/export/drivers?email=driver&status=available&from=' . $today . '&to=' . $today,
+            '/api/v1/export/expenses?from=' . $today . '&to=' . $today,
+            '/api/v1/export/maintenance?vehicle_uuid=' . $vehicle->uuid . '&status=active',
+            '/api/v1/export/users?name=Export&email=driver',
+        ];
+        foreach ($filtered as $url) {
+            $response = $this->get($url)->assertOk();
+            $this->assertGreaterThan(1, substr_count($response->streamedContent(), "\n"));
+        }
     }
 
     public function test_export_rejects_an_invalid_format(): void

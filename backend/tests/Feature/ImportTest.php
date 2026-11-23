@@ -6,6 +6,8 @@ use App\Modules\Driver\Models\Driver;
 use App\Modules\Mission\Models\Mission;
 use App\Modules\Vehicle\Models\Vehicle;
 use Illuminate\Http\UploadedFile;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
 
 class ImportTest extends TestCase
@@ -68,5 +70,54 @@ class ImportTest extends TestCase
             'file' => UploadedFile::fake()->createWithContent('import.csv', "plaque;marque\nABC;Toyota\n"),
         ])->assertUnprocessable();
         $this->assertDatabaseMissing('vehicles', ['plate_number' => 'ABC']);
+    }
+
+    public function test_imports_excel_with_french_header_aliases(): void
+    {
+        $this->actingAsAdmin();
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()->fromArray([
+            ['Plaque', 'Marque', 'Modèle', 'Année'],
+            ['XLS-001', 'Toyota', 'Hilux', 2024],
+        ]);
+        ob_start();
+        try {
+            (new Xlsx($spreadsheet))->save('php://output');
+            $content = ob_get_contents();
+        } finally {
+            ob_end_clean();
+            $spreadsheet->disconnectWorksheets();
+        }
+
+        $this->postJson('/api/v1/import/vehicles', [
+            'file' => UploadedFile::fake()->createWithContent('vehicles.xlsx', $content),
+        ])->assertOk()->assertJsonPath('data.imported', 1)->assertJsonPath('data.errors', []);
+        $this->assertDatabaseHas('vehicles', ['plate_number' => 'XLS-001', 'brand' => 'Toyota']);
+    }
+
+    public function test_document_import_reuses_existing_document_and_rejects_bad_types(): void
+    {
+        $this->actingAsAdmin();
+        $vehicle = Vehicle::create([
+            'company_id' => $this->company->id,
+            'plate_number' => 'IMPORT-DOC',
+            'brand' => 'Toyota',
+            'model' => 'Hilux',
+            'year' => 2024,
+            'type' => 'truck',
+            'fuel_type' => 'diesel',
+        ]);
+        $document = \App\Modules\Document\Models\Document::create([
+            'company_id' => $this->company->id,
+            'documentable_type' => Vehicle::class,
+            'documentable_id' => $vehicle->id,
+            'type' => 'insurance',
+            'file_path' => 'existing.pdf',
+        ]);
+        $result = $this->importCsv('documents', "uuid;documentable_type;documentable_uuid;type;file_path;issue_date;expiry_date;alert_sent\n{$document->uuid};vehicle;;insurance;;;;\n;unknown;{$vehicle->uuid};insurance;;;;\n");
+        $this->assertSame(1, $result['imported']);
+        $this->assertCount(1, $result['errors']);
+        $this->assertStringContainsString('documentable_type', $result['errors'][0]);
+        $this->assertSame(2, \App\Modules\Document\Models\Document::where('file_path', 'existing.pdf')->count());
     }
 }
