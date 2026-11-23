@@ -16,7 +16,7 @@ class RegisterRequest extends FormRequest
         return [
             'name'         => 'required|string|max:100',
             'email'        => 'required|email|unique:users,email',
-            'password'     => 'required|string|min:8|confirmed',
+            'password'     => ['required', 'string', 'min:8', 'confirmed', 'regex:/^(?=.*\p{L})(?=.*[\p{P}\p{S}]).*$/us'],
             'company_name' => 'required|string|max:150',
             'company_email'=> 'required|email|unique:companies,email',
             'plan'         => 'sometimes|in:starter,pro,enterprise',
@@ -32,6 +32,7 @@ class RegisterRequest extends FormRequest
             'password.required'      => 'Le mot de passe est obligatoire.',
             'password.min'           => 'Le mot de passe doit contenir au moins 8 caractères.',
             'password.confirmed'     => 'Les mots de passe ne correspondent pas.',
+            'password.regex'         => 'Le mot de passe doit contenir au moins une lettre et un caractère spécial.',
             'company_name.required'  => "Le nom de l'entreprise est obligatoire.",
             'company_email.required' => "L'email de l'entreprise est obligatoire.",
             'company_email.unique'   => "Cet email d'entreprise est déjà utilisé.",
