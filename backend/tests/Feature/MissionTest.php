@@ -170,4 +170,44 @@ class MissionTest extends TestCase
         $response->assertOk();
         $this->assertCount(0, $response->json('data'));
     }
+
+    public function test_rejects_mission_for_expired_license_and_unavailable_vehicle(): void
+    {
+        $this->actingAsAdmin();
+        $this->driver->update(['license_expiry' => now()->subDay()]);
+        $this->postJson('/api/v1/missions', $this->missionData())->assertUnprocessable();
+        $this->driver->update(['license_expiry' => now()->addYear()]);
+        $this->vehicle->update(['status' => 'maintenance']);
+        $this->postJson('/api/v1/missions', $this->missionData())->assertUnprocessable();
+        $this->assertDatabaseCount('missions', 0);
+    }
+
+    public function test_rejects_overlapping_mission_for_same_vehicle(): void
+    {
+        $this->actingAsAdmin();
+        $this->postJson('/api/v1/missions', $this->missionData())->assertCreated();
+        $response = $this->postJson('/api/v1/missions', $this->missionData());
+        $response->assertUnprocessable();
+        $this->assertArrayHasKey('vehicle_id', $response->json('data'));
+        $this->assertDatabaseCount('missions', 1);
+    }
+
+    public function test_cancel_mission_releases_resources(): void
+    {
+        $this->actingAsAdmin();
+        $mission = Mission::create([
+            'company_id' => $this->company->id,
+            'vehicle_id' => $this->vehicle->id,
+            'driver_id' => $this->driver->id,
+            'origin' => 'Brazzaville',
+            'destination' => 'Dolisie',
+            'status' => 'in_progress',
+        ]);
+        $this->vehicle->update(['status' => 'on_mission']);
+        $this->driver->update(['status' => 'on_mission']);
+        $this->postJson('/api/v1/missions/' . $mission->uuid . '/cancel')->assertOk();
+        $this->assertSame('cancelled', $mission->fresh()->status);
+        $this->assertSame('available', $this->vehicle->fresh()->status);
+        $this->assertSame('available', $this->driver->fresh()->status);
+    }
 }

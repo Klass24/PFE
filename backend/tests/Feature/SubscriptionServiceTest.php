@@ -67,4 +67,15 @@ class SubscriptionServiceTest extends TestCase
         $this->assertSame('2030-12-31', $subscription->end_date->toDateString());
         $this->assertSame(3, $this->company->fresh()->max_users);
     }
+
+    public function test_subscription_api_changes_plan_and_returns_quotas(): void
+    {
+        $this->actingAsAdmin();
+        $this->getJson('/api/v1/subscriptions/current')->assertOk()->assertJsonPath('data', null);
+        $this->postJson('/api/v1/subscriptions/change-plan', ['plan' => 'enterprise'])
+            ->assertOk()->assertJsonPath('data.plan', 'enterprise');
+        $this->getJson('/api/v1/subscriptions/current')->assertOk()->assertJsonPath('data.plan', 'enterprise');
+        $this->getJson('/api/v1/subscriptions/quotas')->assertOk()->assertJsonPath('data.users.max', 999);
+        $this->postJson('/api/v1/subscriptions/change-plan', ['plan' => 'invalid'])->assertUnprocessable();
+    }
 }
